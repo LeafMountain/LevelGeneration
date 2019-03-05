@@ -7,20 +7,25 @@ using UnityEngine;
 public struct Edge
 {
     public Vector3 begin, end;
+    public int indexFirst, indexSecond;
 
-    public Edge(Vector3 first, Vector3 second)
+    public Edge(int indexFirst, Vector3 first, int indexSecond, Vector3 second)
     {
         // Make a better comparison
         if(first.x < second.x || first.x == second.x && (first.y < second.y || (first.y == second.y && (first.z <= second.z))) )
         {
             this.begin = first;
             this.end = second;
+            this.indexFirst = indexFirst;
+            this.indexSecond = indexSecond;
         }
         // Begin is to the right of End
         else
         {
             this.begin = second;
             this.end = first;
+            this.indexFirst = indexSecond;
+            this.indexSecond = indexFirst;
         }
     }
 
@@ -34,22 +39,14 @@ public class ShowEdges : MonoBehaviour
 {
     public Mesh mesh;
     public List<Edge> edges;
+    public List<Vector3> edgeVerticies;
 
     void Start()
     {
         GetEdges();
     }
 
-    Vector3[] GetVertexPositions()
-    {
-        List<Vector3> verticies = new List<Vector3>();
-
-        mesh.GetVertices(verticies);
-
-        return verticies.ToArray();
-    }
-
-    List<Edge> GetEdges()
+    int[] GetEdges()
     {
         int[] triangles = mesh.GetTriangles(0);
         List<Vector3> verticies = new List<Vector3>();
@@ -64,9 +61,9 @@ public class ShowEdges : MonoBehaviour
             int secondVert = triangles[i + 1];
             int thirdVert = triangles[i + 2];
 
-            edges.Add(new Edge(verticies[firstVert], verticies[secondVert]));
-            edges.Add(new Edge(verticies[secondVert], verticies[thirdVert]));
-            edges.Add(new Edge(verticies[thirdVert], verticies[firstVert]));
+            edges.Add(new Edge(firstVert, verticies[firstVert], secondVert, verticies[secondVert]));
+            edges.Add(new Edge(secondVert, verticies[secondVert], thirdVert, verticies[thirdVert]));
+            edges.Add(new Edge(thirdVert, verticies[thirdVert], firstVert, verticies[firstVert]));
         }
 
         for (int i = edges.Count - 1; i >= 0; i--)
@@ -87,19 +84,31 @@ public class ShowEdges : MonoBehaviour
             }
         }
 
-        this.edges = edges;
+        List<int> edgeVerticies = new List<int>();
 
-        return edges;
+        for (int i = 0; i < edges.Count; i++)
+        {
+            edgeVerticies.Add(edges[i].indexFirst);
+            edgeVerticies.Add(edges[i].indexSecond);
+        }
+
+        this.edges = edges;
+        // this.edgeVerticies = edgeVerticies;
+
+        return edgeVerticies.ToArray();
     }
 
     void OnDrawGizmos()
     {
         if(mesh)
         {
-            List<Edge> edges = GetEdges();
-            for (int i = 0; i < edges.Count; i++)
+            List<Vector3> verticies = new List<Vector3>();
+            mesh.GetVertices(verticies);
+            int[] edges = GetEdges();
+
+            for (int i = 0; i < edges.Length; i += 2)
             {
-                Gizmos.DrawLine(edges[i].begin, edges[i].end);
+                Gizmos.DrawLine(verticies[edges[i]], verticies[edges[i + 1]]);
             }
         }
     }
