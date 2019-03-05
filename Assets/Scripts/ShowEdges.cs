@@ -26,7 +26,6 @@ public struct Edge
 
     public bool Equal(Edge other)
     {
-        return true;
         return begin == other.begin && end == other.end;
     }
 }
@@ -70,27 +69,18 @@ public class ShowEdges : MonoBehaviour
             edges.Add(new Edge(verticies[thirdVert], verticies[firstVert]));
         }
 
-        for (int i = edges.Count - 1; i > 0; i--)
+        for (int i = edges.Count - 1; i >= 0; i--)
         {
             // Check if the same edge exists
-            for (int j = edges.Count - 1; j > 0; j--)
+            for (int j = edges.Count - 1; j >= 0; j--)
             {
                 if(j == i)
                     continue;
 
                 if(edges[j].Equal(edges[i]))
                 {
-                    if(i > j)
-                    {
-                        edges.RemoveAt(i);
-                        edges.RemoveAt(j);
-                    }
-                    else
-                    {
-                        edges.RemoveAt(j);
-                        edges.RemoveAt(i);
-                    }
-
+                    edges.RemoveAt(i);
+                    edges.RemoveAt(j);
                     i -= 1;
                     break;
                 }
