@@ -39,7 +39,7 @@ public class ShowEdges : MonoBehaviour
 {
     public Mesh mesh;
     public List<Edge> edges;
-    public List<Vector3> edgeVerticies;
+    public List<int> edgeVerticies;
 
     void Start()
     {
@@ -54,7 +54,7 @@ public class ShowEdges : MonoBehaviour
 
         List<Edge> edges = new List<Edge>();
 
-        // Loop through the triangles
+        // Loop through the triangles and add each edge
         for(int i = 0; i < triangles.Length; i += 3)
         {
             int firstVert = triangles[i];
@@ -66,9 +66,9 @@ public class ShowEdges : MonoBehaviour
             edges.Add(new Edge(thirdVert, verticies[thirdVert], firstVert, verticies[firstVert]));
         }
 
+        // Remove all the duplicates
         for (int i = edges.Count - 1; i >= 0; i--)
         {
-            // Check if the same edge exists
             for (int j = edges.Count - 1; j >= 0; j--)
             {
                 if(j == i)
@@ -84,16 +84,39 @@ public class ShowEdges : MonoBehaviour
             }
         }
 
-        List<int> edgeVerticies = new List<int>();
+        // Sort
+        for (int i = 0; i < edges.Count; i++)
+        {
+            // Find the edge with the same begin as this end
+            for (int j = 0; j < edges.Count; j++)
+            {
+                if(edges[j].begin == edges[i].end)
+                {
+                    Edge temp = edges[j];
+                    edges.RemoveAt(j);
+                    edges.Insert(i + 1, temp);
+                }
+            }
+        }
 
+        // Make it more like the triangle list (vertex index)
+        List<int> edgeVerticies = new List<int>();
         for (int i = 0; i < edges.Count; i++)
         {
             edgeVerticies.Add(edges[i].indexFirst);
             edgeVerticies.Add(edges[i].indexSecond);
         }
 
+        // Remove duplicates
+        // for (int i = edgeVerticies.Count - 1; i >= 1; i -= 2)
+        // {
+        //     Debug.Log("Index: " + i + " Count: " + edgeVerticies.Count);
+        //     edgeVerticies.RemoveAt(i - 1);
+        //     Debug.Log("aa Index: " + i + " Count: " + edgeVerticies.Count);
+        // }
+
         this.edges = edges;
-        // this.edgeVerticies = edgeVerticies;
+        this.edgeVerticies = edgeVerticies;
 
         return edgeVerticies.ToArray();
     }
@@ -108,7 +131,14 @@ public class ShowEdges : MonoBehaviour
 
             for (int i = 0; i < edges.Length; i += 2)
             {
+                Gizmos.color = Color.white;
                 Gizmos.DrawLine(verticies[edges[i]], verticies[edges[i + 1]]);
+                Gizmos.color = Color.red;
+                
+                // For debug purposes
+                float radius = Random.Range(.1f, .3f);
+                Gizmos.DrawSphere(verticies[edges[i]], radius);
+                Gizmos.DrawSphere(verticies[edges[i + 1]], radius);
             }
         }
     }
